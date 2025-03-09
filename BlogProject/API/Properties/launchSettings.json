@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "JwtAuthDemo": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:57954;http://localhost:57955"
+    }
+  }
+}

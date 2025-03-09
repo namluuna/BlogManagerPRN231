@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="d-flex align-items-center justify-content-center vh-100 bg-light">
+    <div class="card shadow-lg p-4" style="width: 350px;">
+        <h2 class="text-center">Login</h2>
+        <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input type="text" id="username" class="form-control" placeholder="Enter your username" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="password" id="password" class="form-control" placeholder="Enter your password" />
+        </div>
+        <button id="login-btn" class="btn btn-primary w-100">Login</button>
+        <div id="error-message" class="text-danger mt-2 text-center" style="display: none;">Login failed!</div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $('#login-btn').click(function () {
+            var username = $('#username').val().trim();
+            var password = $('#password').val().trim();
+
+            if (!username || !password) {
+                $('#error-message').text("Please enter username and password").show();
+                return;
+            }
+
+            $.ajax({
+                url: 'https://localhost:57954/api/account/login',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ username: username, password: password }),
+                success: function (data) {
+                    sessionStorage.setItem('accessToken', data.accessToken);
+
+                    window.location.href = '/Dashboard/Index';
+                },
+                error: function () {
+                    $('#error-message').text("Invalid credentials").show();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
