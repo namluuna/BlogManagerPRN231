@@ -13,8 +13,8 @@ namespace API.Controllers
     [Authorize]
     public class PostsController : ControllerBase
     {
-        private readonly BlogManagementContext _context;
-        public PostsController(BlogManagementContext context)
+        private readonly Data.BlogManagementContext _context;
+        public PostsController(Data.BlogManagementContext context)
         {
             _context = context;
         }
