@@ -22,7 +22,7 @@ public class AccountController(
     : ControllerBase
 {
 
-    BlogManagementContext context;
+    Models.BlogManagementContext context;
 
     [AllowAnonymous]
     [HttpPost("login")]
