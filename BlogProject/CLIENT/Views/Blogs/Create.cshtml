@@ -1,0 +1,11 @@
+﻿@model CLIENT.Models.BlogPostViewModel
+
+@{
+    ViewData["Title"] = "Tạo bài viết";
+}
+
+<h2>Tạo bài viết</h2>
+
+<form method="post">
+    @Html.Partial("_BlogForm")
+</form>
