@@ -1,4 +1,5 @@
-﻿using API.Models;
+﻿using API.Infrastructure;
+using API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
