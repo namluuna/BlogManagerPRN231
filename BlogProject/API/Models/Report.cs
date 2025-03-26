@@ -10,5 +10,8 @@ namespace API.Models
         public int? ReportedBy { get; set; }
         public string Reason { get; set; } = null!;
         public DateTime? CreatedAt { get; set; }
+
+        public virtual Comment Comment { get; set; } = null!;
+        public virtual User? ReportedByNavigation { get; set; }
     }
 }

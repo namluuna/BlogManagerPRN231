@@ -1,7 +1,10 @@
-﻿using API.Infrastructure;
+﻿using API.Data;
+using API.Infrastructure;
+using API.Models;
 using CLIENT.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
@@ -19,6 +22,7 @@ public class AccountController(
     : ControllerBase
 {
 
+    BlogManagementContext context;
 
     [AllowAnonymous]
     [HttpPost("login")]
@@ -29,16 +33,10 @@ public class AccountController(
             return BadRequest();
         }
 
-        var adminUsername = configuration["AdminAccount:Username"];
-        var adminPassword = configuration["AdminAccount:Password"];
-
-        //if (context.Members.FirstOrDefault(x => x.Email == request.UserName && x.Password == request.Password) == null)
-        //{
-        //    if (request.UserName != adminUsername || request.Password != adminPassword)
-        //    {
-        //        return Unauthorized();
-        //    }
-        //}
+        if (context.Users.FirstOrDefault(x => x.Email == request.UserName && PasswordHasher.VerifyPassword(request.Password,x.PasswordHash)) == null)
+        {
+            return Unauthorized();
+        }
 
         var role = GetRole(request.UserName);
         var claims = new[]
@@ -181,6 +179,65 @@ public class AccountController(
         });
     }
 
+    [AllowAnonymous]
+    [HttpPost("register")]
+    public ActionResult Register([FromBody] RegisterRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest("Invalid request.");
+        }
+
+        if (context.Users.Any(x => x.Email == request.Email))
+        {
+            return Conflict("Email already exists.");
+        }
+
+        string hashedPassword = PasswordHasher.HashPassword(request.Password);
+
+        var newUser = new User
+        {
+            Username = request.Username,
+            Email = request.Email,
+            PasswordHash = hashedPassword,
+            Role = "User",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        context.Users.Add(newUser);
+        context.SaveChanges();
+
+        return Ok("Account registered successfully.");
+    }
+
+    [Authorize]
+    [HttpPost("change-password")]
+    public ActionResult ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest("Invalid request.");
+        }
+
+        var userEmail = User.Identity?.Name;
+        var user = context.Users.FirstOrDefault(x => x.Email == userEmail);
+
+        if (user == null)
+        {
+            return NotFound("User not found.");
+        }
+
+        if (!PasswordHasher.VerifyPassword(request.OldPassword, user.PasswordHash))
+        {
+            return BadRequest("Old password is incorrect.");
+        }
+
+        user.PasswordHash = PasswordHasher.HashPassword(request.NewPassword);
+        context.SaveChanges();
+
+        return Ok("Password changed successfully.");
+    }
+
     string GetRole(string userName)
     {
         if (userName.Contains("admin"))
@@ -195,6 +252,19 @@ public class AccountController(
     }
 }
 
+public class ChangePasswordRequest
+{
+    [Required]
+    [JsonPropertyName("oldPassword")]
+    public string OldPassword { get; set; } = string.Empty;
+
+    [Required]
+    [MinLength(6)]
+    [JsonPropertyName("newPassword")]
+    public string NewPassword { get; set; } = string.Empty;
+}
+
+
 public class LoginRequest
 {
     [Required]
@@ -205,6 +275,24 @@ public class LoginRequest
     [JsonPropertyName("password")]
     public string Password { get; set; } = string.Empty;
 }
+
+public class RegisterRequest
+{
+    [Required]
+    [JsonPropertyName("username")]
+    public string Username { get; set; } = string.Empty;
+
+    [Required]
+    [EmailAddress]
+    [JsonPropertyName("email")]
+    public string Email { get; set; } = string.Empty;
+
+    [Required]
+    [MinLength(6)]
+    [JsonPropertyName("password")]
+    public string Password { get; set; } = string.Empty;
+}
+
 
 public class LoginResult
 {
