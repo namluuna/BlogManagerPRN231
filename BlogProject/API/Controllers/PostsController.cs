@@ -20,27 +20,30 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreatePost(string title, string content)
+        public IActionResult CreatePost(string title, string content, int userId)
         {
             if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(content))
             {
                 return BadRequest("Title and Content are required.");
             }
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
+            var getUser = _context.Users.FirstOrDefault(u => u.Id == userId);
+            if (getUser == null)
             {
                 return Unauthorized("User not authenticated.");
             }
-            Post post = new Post {
+            var newPost = new Post
+            {
                 Title = title,
                 Content = content,
-                AuthorId = int.Parse(userId),
+                AuthorId = getUser.Id,
+                CreatedAt = DateTime.UtcNow,
+                Status = "Published",
                 UpdatedAt = DateTime.UtcNow
             };
-            _context.Posts.Add(post);
-            await _context.SaveChangesAsync();
+            _context.Posts.Add(newPost);
+            _context.SaveChanges();
 
-            return CreatedAtAction(nameof(post), new { id = post.Id }, post);
+            return Ok();
         }
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePost(int id, string title, string content)
