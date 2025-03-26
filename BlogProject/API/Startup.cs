@@ -1,5 +1,6 @@
 using System.Text;
 using API.Infrastructure;
+using API.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -72,6 +73,7 @@ public class Startup(IConfiguration configuration)
             options.AddPolicy("AllowAll",
                 builder => { builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); });
         });
+        services.AddDbContext<BlogManagementContext>(option => option.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
