@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CLIENT.Controllers
 {
@@ -6,6 +7,12 @@ namespace CLIENT.Controllers
     {
         public IActionResult Index()
         {
+            var userName = User.Identity?.Name;
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            ViewBag.UserName = userName;
+            ViewBag.Role = role;
+
             return View();
         }
     }

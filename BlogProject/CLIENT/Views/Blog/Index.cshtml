@@ -13,7 +13,8 @@
 
 <a href="@Url.Action("Create")" class="btn btn-primary">Tạo bài viết mới</a>
 
-<table class="table">
+
+<table class="table table-bordered">
     <thead>
         <tr>
             <th>Tiêu đề</th>
@@ -22,18 +23,78 @@
             <th>Hành động</th>
         </tr>
     </thead>
-    <tbody>
-        @foreach (var post in Model)
-        {
-            <tr>
-                <td>@post.Title</td>
-                <td>@post.Content</td>
-                <td>@post.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                <td>
-                    <a href="@Url.Action("Edit", new { id = post.Id })" class="btn btn-warning">Sửa</a>
-                    <a href="@Url.Action("Delete", new { id = post.Id })" class="btn btn-danger">Xóa</a>
-                </td>
-            </tr>
-        }
+    <tbody id="postsTableBody">
+        <!-- Dữ liệu sẽ được thêm vào đây bằng AJAX -->
     </tbody>
 </table>
+
+<div id="postsContainer"></div>
+<div id="Aaaa"></div>
+<button id="prevPage">Trang Trước</button>
+<span id="currentPage">Trang: 1</span>
+<button id="nextPage">Trang Sau</button>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+ <script>
+    $(document).ready(function (){
+        let currentPage = 1;
+        let pageSize = 5; // Số bài viết trên mỗi trang
+        var accessToken = sessionStorage.getItem('accessToken');
+        loadPosts(currentPage);
+        function loadPosts(page){
+            $.ajax({
+                url: `https://localhost:57954/api/Posts?page=${page}&pageSize=${pageSize}`,
+                type: "GET",
+                dataType: "json",
+                headers: { 'Authorization': 'Bearer ' + accessToken },
+                success: function (data) {
+                    let posts = data.items || [];
+                    console.log(Array.isArray(posts));
+                    console.log(data.items);
+                // Kiểm tra nếu không phải array
+                if (!Array.isArray(posts)) {
+                    console.error("Lỗi: API không trả về danh sách bài viết hợp lệ.");
+                    $("#postsTableBody").html("<tr><td colspan='4'>Lỗi dữ liệu.</td></tr>");
+                    return;
+                }
+                let rows = "";
+                if (posts.length > 0) {
+                    posts.forEach(function (post) {
+                        rows += `
+                            <tr>
+                                <td>${post.title}</td>
+                                <td>${post.content}</td>
+                                <td>${formatDate(post.updatedAt)}</td>
+                                <td>
+                                    <a href="/Posts/Edit/${post.id}" class="btn btn-warning">Sửa</a>
+                                    <a href="/Posts/Delete/${post.id}" class="btn btn-danger">Xóa</a>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    $("#postsTableBody").html(rows);
+                } else {
+                    $("#postsTableBody").html("<tr><td colspan='4'>Không có bài viết nào.</td></tr>");
+                }
+                },
+                error: function () {
+                    $("#postsContainer").html("<p>Lỗi khi tải bài viết.</p>");
+                }
+            });
+        }
+
+        
+
+        $("#prevPage").click(function () {
+            if (currentPage > 1) {
+                currentPage--;
+                loadPosts(currentPage);
+            }
+        });
+        $("#nextPage").click(function () {
+            currentPage++;
+            loadPosts(currentPage);
+        });
+    });
+ </script>
