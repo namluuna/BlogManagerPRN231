@@ -1,5 +1,6 @@
 ﻿using API.Data;
 using API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CommentController : ControllerBase
     {
         private readonly Data.BlogManagementContext _context;
@@ -44,8 +46,8 @@ namespace API.Controllers
             return Ok(data);
 
         }
-        [HttpPost("comment/{postId}/{userId}/{content}")]
-        public IActionResult CommentToPost(int postId, int userId, string content) 
+        [HttpPost("comment/{postId}/{userName}/{content}")]
+        public IActionResult CommentToPost(int postId, string userName, string content) 
         {
             if (string.IsNullOrEmpty(content))
             {
@@ -56,7 +58,7 @@ namespace API.Controllers
             { 
                 return NotFound("Post not exist");
             }
-            var user = _context.Users.Find(userId);
+            var user = _context.Users.FirstOrDefault(u => u.Username == userName);
             if (user == null)
             {
                 return NotFound("User not exist");
@@ -66,7 +68,7 @@ namespace API.Controllers
                 Content = content,
                 CreatedAt = DateTime.UtcNow,
                 PostId = postId,
-                UserId = userId,
+                UserId = user.Id,
             };
             _context.Comments.Add(newComment);
             _context.SaveChanges();

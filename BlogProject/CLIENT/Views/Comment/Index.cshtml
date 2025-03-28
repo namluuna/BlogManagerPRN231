@@ -1,47 +1,42 @@
-﻿@{
-    ViewData["Title"] = "Dashboard";
+﻿@model List<CLIENT.Models.BlogPostViewModel>
+
+@{
+    ViewData["Title"] = "Chi tiết Blog";
 }
 
-<!-- Bootstrap -->
+<h2>Chi tiết Blog</h2>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<form method="get">
+    <input type="text" name="search" placeholder="Tìm kiếm theo tiêu đề" />
+    <button type="submit">Tìm kiếm</button>
+</form>
 <div class="container mt-4">
     <header id="header-dashboard">
         <nav>
             <ul>
                 <li><a href="/Dashboard">Dashboard</a></li>
                 <li><a href="/Product">Products</a></li>
+                <li><a href="/Blog">Blog</a></li>
                 <li><a href="/Profile">Profile</a></li>
                 <li><a id="OrderHeader" href="/Order">My Orders</a></li>
                 <li><a href="#" id="logout-button">Logout</a></li>
             </ul>
         </nav>
     </header>
+    <h2>Bình luận bài viết</h2>
+    <div id="postTitle"></div>
+    <div id="postContent"></div>
 
-
-    <div id="user-info" class="alert alert-info text-center"></div> <!-- Thông tin người dùng -->
-    <!-- Chỉ hiển thị nếu là Admin -->
-    <div id="admin-report-section" class="card p-4 shadow-sm" style="display: none;">
-        <h3 class="mb-3 text-primary">Sales Report</h3>
-
-        <div class="row mb-3">
-            <div class="col-md-5">
-                <label class="form-label">Start Date</label>
-                <input type="date" id="startDate" class="form-control">
-            </div>
-            <div class="col-md-5">
-                <label class="form-label">End Date</label>
-                <input type="date" id="endDate" class="form-control">
-            </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <button id="generate-report" class="btn btn-primary w-100">Generate</button>
-            </div>
-        </div>
-
-        <div id="report-results" class="mt-4"></div> <!-- Kết quả báo cáo -->
-    </div>
-
+    <h3>Danh sách bình luận</h3>
+    <ul id="commentsList"></ul>
+    <textarea id="newCommentContent" rows="5" style="width: 100%;" placeholder="Nhập bình luận của bạn..."></textarea>
+    <br>
+    <button id="submitComment" style="margin-top: 10px;">Gửi bình luận</button>
 </div>
+
 
 <style>
     nav ul {
@@ -69,113 +64,115 @@
                 }
 </style>
 
-<!-- Bootstrap JS & jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    $(document).ready(function () {
+    $(document).ready(function (){
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('postId');
         var accessToken = sessionStorage.getItem('accessToken');
+        var userName = sessionStorage.getItem('userName');
 
-        if (accessToken) {
-            $.ajax({
-                url: 'https://localhost:57954/api/account/user',
-                type: 'GET',
-                headers: { 'Authorization': 'Bearer ' + accessToken },
-                success: function (data) {
-                    $('#user-info').html(`<p><strong>Hello, ${data.username}</strong>. You are logged in as: <span class="badge bg-secondary">${data.role}</span></p>`);
-
-                    if (data.role === "Admin") {
-                        $('#admin-report-section').fadeIn();
+        if(postId){
+            loadComments(postId);
+        } else {
+            $("#commentsContainer").html("<p>Không tìm thấy bài viết.</p>");
+        }
+        $("#submitComment").click(function () {
+            postComment(postId, userName);
+        });
 
 
-                    }else{
-                        $('#OrderHeader').fadeIn();
-                    }
-
+        function postComment(postId, userName){
+        let commentContent = $("#newCommentContent").val().trim();
+        if (commentContent === "") {
+            alert("Vui lòng nhập nội dung bình luận!");
+            return;
+        }
+        var accessToken = sessionStorage.getItem('accessToken');
+        $.ajax({
+        url: `https://localhost:57954/api/Comment/comment/${postId}/${userName}/${encodeURIComponent(commentContent)}`,
+        type: "POST",
+        headers: { 'Authorization': 'Bearer ' + accessToken },
+        success: function () {
+            alert("Bình luận đã được gửi!");
+            $("#newCommentContent").val("");
+            loadComments(postId);
                 },
-                error: function () {
-                    alert('Failed to retrieve user info.');
+        error: function (err) {
+            console.log("Lỗi khi gửi bình luận: ", err);
+            alert("Gửi bình luận thất bại!");
                 }
             });
-        } else {
-            alert('You are not logged in.');
-            window.location.href = '/Home';
         }
 
-        $('#logout-button').on('click', function (event) {
-            event.preventDefault();
-            if (accessToken) {
-                $.ajax({
-                    url: 'https://localhost:57954/api/account/logout',
-                    type: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + accessToken },
-                    success: function () {
-                        alert('Logout successful.');
-                        sessionStorage.removeItem('accessToken');
-                        window.location.href = '/Home';
-                    },
-                    error: function () {
-                        alert('Logout failed.');
+        function deleteComment(commentId) {
+        if (confirm("Bạn có chắc chắn muốn xóa bình luận này?")) {
+            $.ajax({
+                url: `https://localhost:57954/api/Comment/comment/${commentId}`,
+                type: "DELETE",
+                headers: { 'Authorization': 'Bearer ' + accessToken },
+                success: function (response) {
+                    alert("Xóa bình luận thành công!");
+                    location.reload();
+                },
+                error: function (err) {
+                    if (err.status === 404 && err.responseText.includes("Cannot Delete when a report exist")) {
+                        alert("Không thể xóa bình luận vì có báo cáo tồn tại.");
+                    } else if (err.status === 404) {
+                        alert("Bình luận không tồn tại.");
+                    } else {
+                        console.log("Lỗi khi xóa bình luận: ", err);
+                        alert("Xóa bình luận thất bại");
+                        }
                     }
                 });
-            }
-        });
+            }   
+        }
 
-        // Handle Generate Report Button
-        $('#generate-report').on('click', function () {
-            var startDate = $('#startDate').val();
-            var endDate = $('#endDate').val();
+    function loadComments(postId) {
+        $.ajax({
+            url: `https://localhost:57954/api/Comment/comment/${postId}`,
+            type: "GET",
+            dataType: "json",
+            headers: { 'Authorization': 'Bearer ' + accessToken },
+            success: function (result) {
+                let userName = sessionStorage.getItem('userName');
 
-            if (!startDate || !endDate) {
-                alert("Please select both start and end dates.");
-                return;
-            }
+                $("#postTitle").html(`<h3>${result.postTitle}</h3>`);
+                $("#postContent").html(`<p>${result.content}</p>`);
 
-            $.ajax({
-                url: `https://localhost:57954/api/sales/report?startDate=${startDate}&endDate=${endDate}`,
-                type: 'GET',
-                headers: { 'Authorization': 'Bearer ' + accessToken },
-                success: function (reportData) {
-                    console.log("API Response:", reportData);
+                let commentsHtml = "";
+                if (result.comments && result.comments["$values"].length > 0) {
+                    result.comments["$values"].forEach(comment => {
+                        let deleteButton = (userName === comment.author.username)
+                            ? `<a href="#" class="btn btn-danger delete-comment" data-id="${comment.id}">Xóa bình luận</a>`
+                            : "";
 
-                    var dataArray = reportData.$values;
-                    if (!Array.isArray(dataArray)) {
-                        $('#report-results').html("<p class='text-danger'>Invalid data format.</p>");
-                        return;
-                    }
-
-                    if (dataArray.length === 0) {
-                        $('#report-results').html("<p class='text-warning'>No sales data available for the selected period.</p>");
-                        return;
-                    }
-
-                    var reportHtml = `
-                        <h4 class="mt-3">Sales Report</h4>
-                        <table class="table table-bordered table-striped mt-2">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Total Sales ($)</th>
-                                </tr>
-                            </thead>
-                            <tbody>`;
-
-                    dataArray.forEach(item => {
-                        reportHtml += `
-                            <tr>
-                                <td>${new Date(item.date).toLocaleDateString()}</td>
-                                <td>${item.totalAmount.toFixed(2)}</td>
-                            </tr>`;
+                        commentsHtml += `
+                            <li>
+                                <strong>${comment.author.username}</strong>
+                                (<span>${comment.commentDate}</span>):
+                                <p>${comment.content}</p>
+                                ${deleteButton}
+                            </li>
+                        `;
                     });
-
-                    reportHtml += `</tbody></table>`;
-                    $('#report-results').html(reportHtml);
-                },
-                error: function () {
-                    alert('Failed to generate report.');
+                } else {
+                    commentsHtml = "<li>Không có bình luận nào.</li>";
                 }
-            });
+                
+                $("#commentsList").html(commentsHtml);
+                $(".delete-comment").click(function (e) {
+                e.preventDefault();
+                let commentId = $(this).data("id");
+                deleteComment(commentId);
+                });
+            },
+            error: function (err) {
+                console.log("Lỗi khi tải bình luận: ", err);
+                $("#commentsList").html("<li>Lỗi khi tải bình luận.</li>");
+            }
         });
+    }
     });
 </script>

@@ -37,11 +37,21 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
  <script>
+    function formatDate(dateString) {
+        if (!dateString) return ""; // Kiểm tra nếu ngày rỗng
+        let date = new Date(dateString);
+        let day = String(date.getDate()).padStart(2, '0');
+        let month = String(date.getMonth() + 1).padStart(2, '0'); // Tháng bắt đầu từ 0
+        let year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
+
     $(document).ready(function (){
         let currentPage = 1;
         let pageSize = 5; // Số bài viết trên mỗi trang
         var accessToken = sessionStorage.getItem('accessToken');
-        loadPosts(currentPage);
+        
         function loadPosts(page){
             $.ajax({
                 url: `https://localhost:57954/api/Posts?page=${page}&pageSize=${pageSize}`,
@@ -49,34 +59,26 @@
                 dataType: "json",
                 headers: { 'Authorization': 'Bearer ' + accessToken },
                 success: function (data) {
-                    let posts = data.items || [];
-                    console.log(Array.isArray(posts));
-                    console.log(data.items);
-                // Kiểm tra nếu không phải array
-                if (!Array.isArray(posts)) {
-                    console.error("Lỗi: API không trả về danh sách bài viết hợp lệ.");
-                    $("#postsTableBody").html("<tr><td colspan='4'>Lỗi dữ liệu.</td></tr>");
-                    return;
-                }
                 let rows = "";
-                if (posts.length > 0) {
-                    posts.forEach(function (post) {
-                        rows += `
+                let a = data["$values"]; // Lấy danh sách bài viết từ "$values"
+                //console.log(a);
+                //https://localhost:57954/api/Comment/comment/1
+                a.forEach(p => {
+                    console.log(`ID${p.title}`);
+                    rows += `
                             <tr>
-                                <td>${post.title}</td>
-                                <td>${post.content}</td>
-                                <td>${formatDate(post.updatedAt)}</td>
+                                <td>${p.title}</td>
+                                <td>${p.content}</td>
+                                <td>${formatDate(p.updatedAt)}</td>
                                 <td>
-                                    <a href="/Posts/Edit/${post.id}" class="btn btn-warning">Sửa</a>
-                                    <a href="/Posts/Delete/${post.id}" class="btn btn-danger">Xóa</a>
+                                    <a href="javascript:void(0);" onclick="redirectToComments(${p.id});" class="btn btn-warning">Xem chi tiết</a>
+                                    <a href="/Posts/Edit/${p.id}" class="btn btn-warning">Sửa</a>
+                                    <a href="/Posts/Delete/${p.id}" class="btn btn-danger">Xóa</a>
                                 </td>
                             </tr>
                         `;
-                    });
-                    $("#postsTableBody").html(rows);
-                } else {
-                    $("#postsTableBody").html("<tr><td colspan='4'>Không có bài viết nào.</td></tr>");
-                }
+                });
+                $("#postsTableBody").html(rows);
                 },
                 error: function () {
                     $("#postsContainer").html("<p>Lỗi khi tải bài viết.</p>");
@@ -84,7 +86,7 @@
             });
         }
 
-        
+        loadPosts(currentPage);
 
         $("#prevPage").click(function () {
             if (currentPage > 1) {
@@ -97,4 +99,8 @@
             loadPosts(currentPage);
         });
     });
+    function redirectToComments(postId) {
+        // Chuyển hướng đến trang /Comment/Index và truyền postId qua URL
+        window.location.href = `/Comment/Index?postId=${postId}`;
+    }
  </script>
