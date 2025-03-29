@@ -151,5 +151,47 @@ namespace API.Controllers
                 }
             });
         }
+        [HttpPost("reportcomment/{commentId}/{reportedUserName}/{reason}")]
+        public IActionResult ReportAComment(int commentId, string reportedUserName, string reason)
+        {
+            if (string.IsNullOrEmpty(reason))
+            {
+                return BadRequest("Comment must not empty");
+            }
+            var data = _context.Comments.Find(commentId);
+            if (data == null)
+            {
+                return NotFound("Post not exist");
+            }
+            var user = _context.Users.FirstOrDefault(u => u.Username == reportedUserName);
+            if (user == null)
+            {
+                return NotFound("User not exist");
+            }
+            var newReport = new Report
+            {
+                CommentId = commentId,
+                ReportedBy = user.Id,
+                Reason = reason,
+                CreatedAt = DateTime.UtcNow,
+            };
+            _context.Reports.Add(newReport);
+            _context.SaveChanges();
+            return Ok(new
+            {
+                Message = "Add Report!",
+                Report = new
+                {
+                    newReport.Id,
+                    newReport.Reason,
+                    CommentDate = newReport.CreatedAt.HasValue ? newReport.CreatedAt.Value.ToString("dd/MM/yyyy") : "N/A",
+                    Author = new
+                    {
+                        user.Id,
+                        user.Username
+                    }
+                }
+            });
+        }
     }
 }

@@ -116,7 +116,7 @@
             }
         }
 
-        function deleteComment(commentId) {
+    function deleteComment(commentId) {
         if (confirm("Bạn có chắc chắn muốn xóa bình luận này?")) {
             $.ajax({
                 url: `https://localhost:57954/api/Comment/comment/${commentId}`,
@@ -140,10 +140,6 @@
             }   
         }
     function editComment(postId, commentId, userName, commentContent){
-        console.log(postId);
-        console.log(commentId);
-        console.log(userName);
-        console.log(commentContent);
         $.ajax({
             url: `https://localhost:57954/api/Comment/comment/${postId}/${commentId}/${userName}/${encodeURIComponent(commentContent)}`,
                 type: "PUT",
@@ -163,6 +159,34 @@
                         }
                 }
         });
+    }
+    function reportComment(commentId, userName, reason){
+        var accessToken = sessionStorage.getItem('accessToken');
+        $.ajax({
+            url: `https://localhost:57954/api/Comment/reportcomment/${commentId}/${userName}/${reason}`,
+                type: "POST",
+                headers: { 'Authorization': 'Bearer ' + accessToken },
+            success: function (response) {
+                    alert("Báo cáo bình luận thành công!");
+                    location.reload();
+                },
+                error: function (err){
+                    if (err.status === 404 && err.responseText.includes("Không thể báo cáo bình luận.")) {
+                        alert("Không thể báo cáo bình luận.");
+                    }else if (err.status === 404) {
+                        alert("Bình luận không tồn tại.");
+                    }else {
+                        console.log("Lỗi khi báo cáo bình luận: ", err);
+                        alert("Lỗi khi báo cáo bình luận");
+                        }
+                }
+        });
+    }
+    function ShowAlert(commentId, userName){
+        let userInput = prompt("Nhập lý do của bạn:");
+        if(userInput !== null){
+            reportComment(commentId, userName, userInput);
+        }
     }
     function loadComments(postId) {
         $.ajax({
@@ -184,11 +208,14 @@
                             : "";
                         let editBtn = (userName === comment.author.username)
                         ? `<a href="#" class="btn btn-warning edit-comment" data-id="${comment.id}">Chỉnh sửa bình luận</a>` : "";
+                        let reportBtn = (userName !== comment.author.username) ?
+                        `<a href="#" class="btn btn-danger report-comment" data-id="${comment.id}">Báo cáo bình luận</a>` : "";
                         commentsHtml += `
                             <li>
                                 <strong>${comment.author.username}</strong>
                                 (<span>${comment.commentDate}</span>):
                                 <p>${comment.content}</p>
+                                ${reportBtn}
                                 ${deleteButton}
                                 ${editBtn}
                             </li>
@@ -210,6 +237,11 @@
                     let commentContent = $(this).closest("li").find("p").text().trim();
                     $("#newCommentContent").val(commentContent);
                     $("#newCommentContent").attr("data-edit-id", commentId);
+                });
+                $(".report-comment").click(function (e){
+                    e.preventDefault();
+                    let commentId = $(this).data("id");
+                    ShowAlert(commentId, userName);
                 });
             },
             error: function (err) {
