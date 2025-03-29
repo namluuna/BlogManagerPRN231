@@ -110,8 +110,8 @@ namespace API.Controllers
                 DeletedCommentId = commentId
             });
         }
-        [HttpPut("comment/{postId}/{commentId}/{userId}/{content}")]
-        public IActionResult PutComment(int postId, int commentId,int userId, string content)
+        [HttpPut("comment/{postId}/{commentId}/{userName}/{content}")]
+        public IActionResult PutComment(int postId, int commentId,string userName, string content)
         {
             if (string.IsNullOrEmpty(content))
             {
@@ -122,12 +122,12 @@ namespace API.Controllers
             {
                 return NotFound("Post not exist");
             }
-            var user = _context.Users.Find(userId);
+            var user = _context.Users.FirstOrDefault(user => user.Username == userName);
             if (user == null)
             {
                 return NotFound("User not exist");
             }
-            var comment = _context.Comments.FirstOrDefault(c => c.Id == commentId && c.PostId == postId && c.UserId == userId);
+            var comment = _context.Comments.Include(u => u.User).FirstOrDefault(c => c.Id == commentId && c.PostId == postId && c.User.Username == userName);
             if (comment == null)
             {
                 return NotFound("Comment not exist or belongs to this user");

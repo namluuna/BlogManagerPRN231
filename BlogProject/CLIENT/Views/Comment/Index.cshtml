@@ -83,6 +83,16 @@
 
 
         function postComment(postId, userName){
+        let commentId = $("#newCommentContent").attr("data-edit-id");
+        console.log(commentId);
+        if(commentId){
+            let commentContent = $("#newCommentContent").val().trim();
+            if(commentContent === ""){
+                alert("Vui lòng nhập nội dung bình luận!");
+                return;
+            }
+            editComment(postId, commentId, userName, commentContent);
+        } else {
         let commentContent = $("#newCommentContent").val().trim();
         if (commentContent === "") {
             alert("Vui lòng nhập nội dung bình luận!");
@@ -101,8 +111,9 @@
         error: function (err) {
             console.log("Lỗi khi gửi bình luận: ", err);
             alert("Gửi bình luận thất bại!");
-                }
-            });
+                    }
+                });
+            }
         }
 
         function deleteComment(commentId) {
@@ -128,7 +139,31 @@
                 });
             }   
         }
-
+    function editComment(postId, commentId, userName, commentContent){
+        console.log(postId);
+        console.log(commentId);
+        console.log(userName);
+        console.log(commentContent);
+        $.ajax({
+            url: `https://localhost:57954/api/Comment/comment/${postId}/${commentId}/${userName}/${encodeURIComponent(commentContent)}`,
+                type: "PUT",
+                headers: { 'Authorization': 'Bearer ' + accessToken },
+            success: function (response) {
+                    alert("Cập nhật bình luận thành công!");
+                    location.reload();
+                },
+                error: function (err){
+                    if (err.status === 404 && err.responseText.includes("Không thể cập nhật bình luận.")) {
+                        alert("Không thể cập nhật bình luận.");
+                    }else if (err.status === 404) {
+                        alert("Bình luận không tồn tại.");
+                    }else {
+                        console.log("Lỗi khi cập nhật bình luận: ", err);
+                        alert("Lỗi khi cập nhật bình luận");
+                        }
+                }
+        });
+    }
     function loadComments(postId) {
         $.ajax({
             url: `https://localhost:57954/api/Comment/comment/${postId}`,
@@ -147,13 +182,15 @@
                         let deleteButton = (userName === comment.author.username)
                             ? `<a href="#" class="btn btn-danger delete-comment" data-id="${comment.id}">Xóa bình luận</a>`
                             : "";
-
+                        let editBtn = (userName === comment.author.username)
+                        ? `<a href="#" class="btn btn-warning edit-comment" data-id="${comment.id}">Chỉnh sửa bình luận</a>` : "";
                         commentsHtml += `
                             <li>
                                 <strong>${comment.author.username}</strong>
                                 (<span>${comment.commentDate}</span>):
                                 <p>${comment.content}</p>
                                 ${deleteButton}
+                                ${editBtn}
                             </li>
                         `;
                     });
@@ -166,6 +203,13 @@
                 e.preventDefault();
                 let commentId = $(this).data("id");
                 deleteComment(commentId);
+                });
+                $(".edit-comment").click(function (e){
+                    e.preventDefault();
+                    let commentId = $(this).data("id");
+                    let commentContent = $(this).closest("li").find("p").text().trim();
+                    $("#newCommentContent").val(commentContent);
+                    $("#newCommentContent").attr("data-edit-id", commentId);
                 });
             },
             error: function (err) {
