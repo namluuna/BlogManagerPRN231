@@ -43,7 +43,7 @@
                 data: JSON.stringify({ username: username, password: password }),
                 success: function (data) {
                     sessionStorage.setItem('accessToken', data.accessToken);
-
+                    sessionStorage.setItem('userName', data.userName);
                     window.location.href = '/Dashboard/Index';
                 },
                 error: function () {

@@ -16,13 +16,20 @@ namespace API.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class AccountController(
-    ILogger<AccountController> logger,
-    IJwtAuthManager jwtAuthManager, IConfiguration configuration)
-    : ControllerBase
-{
 
-    BlogManagementContext context;
+public class AccountController: ControllerBase
+{
+    Data.BlogManagementContext context;
+    ILogger<AccountController> logger;
+    IJwtAuthManager jwtAuthManager;
+    IConfiguration configuration;
+    public AccountController(ILogger<AccountController> logger, IJwtAuthManager jwtAuthManager, IConfiguration configuration, Data.BlogManagementContext context)
+    {
+        this.logger = logger;
+        this.jwtAuthManager = jwtAuthManager;
+        this.configuration = configuration;
+        this.context = context;
+    }
 
     [AllowAnonymous]
     [HttpPost("login")]
@@ -32,11 +39,17 @@ public class AccountController(
         {
             return BadRequest();
         }
-
-        if (context.Users.FirstOrDefault(x => x.Email == request.UserName && PasswordHasher.VerifyPassword(request.Password,x.PasswordHash)) == null)
-        {
-            return Unauthorized();
+        var confirm = context.Users.FirstOrDefault(u => u.Username == request.UserName);
+        if (confirm != null) { 
+            if(!PasswordHasher.VerifyPassword(request.Password, confirm.PasswordHash))
+            {
+                return Unauthorized();
+            }
         }
+        //if (context.Users.FirstOrDefault(x => x.Email == request.UserName && PasswordHasher.VerifyPassword(request.Password,x.PasswordHash)) == null)
+        //{
+        //    return Unauthorized();
+        //}
 
         var role = GetRole(request.UserName);
         var claims = new[]
@@ -200,7 +213,7 @@ public class AccountController(
             Username = request.Username,
             Email = request.Email,
             PasswordHash = hashedPassword,
-            Role = "User",
+            Role = "Author",
             CreatedAt = DateTime.UtcNow
         };
 

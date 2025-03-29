@@ -14,7 +14,7 @@ namespace CLIENT.Controllers
         public BlogController(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _httpClient.BaseAddress = new Uri("https://57954/api/posts");
+            _httpClient.BaseAddress = new Uri("https://localhost:57954/api/Posts");
         }
 
         public async Task<IActionResult> Index(string search = "", int page = 1, int pageSize = 10)
