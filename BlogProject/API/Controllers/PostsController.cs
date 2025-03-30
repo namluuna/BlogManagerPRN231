@@ -1,4 +1,6 @@
-﻿using API.Models;
+﻿
+using API.Data;
+using API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +11,7 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous]
+    [Authorize]
     public class PostsController : ControllerBase
     {
         private readonly BlogManagementContext _context;
@@ -25,21 +27,23 @@ namespace API.Controllers
             {
                 return BadRequest("Title and Content are required.");
             }
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
+            var userName = User.Identity?.Name!;
+            if (string.IsNullOrEmpty(userName))
             {
                 return Unauthorized("User not authenticated.");
             }
-            Post post = new Post {
+            var userId = _context.Users.FirstOrDefault(u => u.Username == userName).Id;
+            Post post = new Post
+            {
                 Title = title,
                 Content = content,
-                AuthorId = int.Parse(userId),
+                AuthorId = userId,
                 UpdatedAt = DateTime.UtcNow
             };
             _context.Posts.Add(post);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(post), new { id = post.Id }, post);
+            return Ok(post);
         }
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePost(int id, string title, string content)
@@ -56,7 +60,7 @@ namespace API.Controllers
 
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(existingPost);
         }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePost(int id)
@@ -83,30 +87,30 @@ namespace API.Controllers
             return Ok(posts);
         }
         [HttpGet("search/title")]
-        public async Task<IActionResult> SearchPostsByTitle([FromQuery] string query)
+        public async Task<IActionResult> SearchPostsByTitle(string title)
         {
-            if (string.IsNullOrEmpty(query))
+            if (string.IsNullOrEmpty(title))
             {
-                return BadRequest("Search query cannot be empty.");
+                return BadRequest("Search string cannot be empty.");
             }
 
             var posts = await _context.Posts
-                                       .Where(p => p.Title.Contains(query))
+                                       .Where(p => p.Title.Contains(title))
                                        .ToListAsync();
 
             return Ok(posts);
         }
         [HttpGet("search/content")]
-        public async Task<IActionResult> SearchPostsByContent([FromQuery] string query)
+        public async Task<IActionResult> SearchPostsByContent(string content)
         {
-            if (string.IsNullOrEmpty(query))
+            if (string.IsNullOrEmpty(content))
             {
-                return BadRequest("Search query cannot be empty.");
+                return BadRequest("Search string cannot be empty.");
             }
 
             var posts = await _context.Posts
-                                       .Where(p => p.Content.Contains(query))
-                                       .ToListAsync();
+                          .Where(p => EF.Functions.Like(p.Content, $"%{content}%"))
+                          .ToListAsync();
 
             return Ok(posts);
         }
