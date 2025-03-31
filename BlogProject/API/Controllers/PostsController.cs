@@ -1,6 +1,7 @@
 ﻿
 using API.Data;
 using API.DTO;
+﻿using API.Infrastructure;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -15,8 +16,8 @@ namespace API.Controllers
     [Authorize]
     public class PostsController : ControllerBase
     {
-        private readonly BlogManagementContext _context;
-        public PostsController(BlogManagementContext context)
+        private readonly Data.BlogManagementContext _context;
+        public PostsController(Data.BlogManagementContext context)
         {
             _context = context;
         }
@@ -46,8 +47,8 @@ namespace API.Controllers
                 AuthorId = userId,
                 UpdatedAt = DateTime.UtcNow
             };
-            _context.Posts.Add(post);
-            await _context.SaveChangesAsync();
+            _context.Posts.Add(newPost);
+            _context.SaveChanges();
 
             return Ok(post);
         }
