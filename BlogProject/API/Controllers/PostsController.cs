@@ -100,33 +100,20 @@ namespace API.Controllers
 
             return Ok(post);
         }
-        [HttpGet("search/title")]
-        public async Task<IActionResult> SearchPostsByTitle(string title)
+        [HttpGet("search/{TitleOrContent}")]
+        public async Task<IActionResult> SearchPostsByTitle(string TitleOrContent)
         {
-            if (string.IsNullOrEmpty(title))
+            if (string.IsNullOrEmpty(TitleOrContent))
             {
                 return BadRequest("Search string cannot be empty.");
             }
 
             var posts = await _context.Posts
-                                       .Where(p => p.Title.Contains(title))
+                                       .Where(p => p.Title.Contains(TitleOrContent) || p.Content.Contains(TitleOrContent))
                                        .ToListAsync();
 
             return Ok(posts);
         }
-        [HttpGet("search/content")]
-        public async Task<IActionResult> SearchPostsByContent(string content)
-        {
-            if (string.IsNullOrEmpty(content))
-            {
-                return BadRequest("Search string cannot be empty.");
-            }
-
-            var posts = await _context.Posts
-                          .Where(p => EF.Functions.Like(p.Content, $"%{content}%"))
-                          .ToListAsync();
-
-            return Ok(posts);
-        }
+        
     }
 }
