@@ -47,13 +47,13 @@ namespace API.Controllers
                 AuthorId = userId,
                 UpdatedAt = DateTime.UtcNow
             };
-            _context.Posts.Add(newPost);
+            _context.Posts.Add(post);
             _context.SaveChanges();
 
             return Ok(post);
         }
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePost(int id, string title, string content)
+        public async Task<IActionResult> UpdatePost(int id, [FromBody] PostDto postDto)
         {
             var existingPost = await _context.Posts.FindAsync(id);
             if (existingPost == null)
@@ -61,8 +61,8 @@ namespace API.Controllers
                 return NotFound();
             }
 
-            existingPost.Title = title;
-            existingPost.Content = content;
+            existingPost.Title = postDto.Title;
+            existingPost.Content = postDto.Content;
             existingPost.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
@@ -92,6 +92,13 @@ namespace API.Controllers
                                        .ToListAsync();
 
             return Ok(posts);
+        }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetPostsById(int id)
+        {
+            var post = await _context.Posts.FirstOrDefaultAsync(p => p.Id == id);
+
+            return Ok(post);
         }
         [HttpGet("search/title")]
         public async Task<IActionResult> SearchPostsByTitle(string title)
