@@ -28,10 +28,10 @@
             <tr>
                 <td>@post.Title</td>
                 <td>@post.Content</td>
-                <td>@post.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                
                 <td>
-                    <a href="@Url.Action("Edit", new { id = post.Id })" class="btn btn-warning">Sửa</a>
-                    <a href="@Url.Action("Delete", new { id = post.Id })" class="btn btn-danger">Xóa</a>
+                    <a href="@Url.Action("Edit", new { id = post.Title })" class="btn btn-warning">Sửa</a>
+                    <a href="@Url.Action("Delete", new { id = post.Title })" class="btn btn-danger">Xóa</a>
                 </td>
             </tr>
         }

@@ -1,5 +1,6 @@
 ﻿
 using API.Data;
+using API.DTO;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -21,9 +22,13 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreatePost(string title, string content)
+        public async Task<IActionResult> CreatePost([FromBody] PostDto postDto)
         {
-            if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(content))
+            if (postDto == null)
+            {
+                return BadRequest("No data received.");
+            }
+            if (string.IsNullOrEmpty(postDto.Title) || string.IsNullOrEmpty(postDto.Content))
             {
                 return BadRequest("Title and Content are required.");
             }
@@ -33,10 +38,11 @@ namespace API.Controllers
                 return Unauthorized("User not authenticated.");
             }
             var userId = _context.Users.FirstOrDefault(u => u.Username == userName).Id;
+            
             Post post = new Post
             {
-                Title = title,
-                Content = content,
+                Title = postDto.Title,
+                Content = postDto.Content,
                 AuthorId = userId,
                 UpdatedAt = DateTime.UtcNow
             };
