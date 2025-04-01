@@ -16,9 +16,9 @@ namespace API.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-
 public class AccountController: ControllerBase
 {
+
     Data.BlogManagementContext context;
     ILogger<AccountController> logger;
     IJwtAuthManager jwtAuthManager;
@@ -40,8 +40,9 @@ public class AccountController: ControllerBase
             return BadRequest();
         }
         var confirm = context.Users.FirstOrDefault(u => u.Username == request.UserName);
-        if (confirm != null) { 
-            if(!PasswordHasher.VerifyPassword(request.Password, confirm.PasswordHash))
+        if (confirm != null)
+        {
+            if (!PasswordHasher.VerifyPassword(request.Password, confirm.PasswordHash))
             {
                 return Unauthorized();
             }

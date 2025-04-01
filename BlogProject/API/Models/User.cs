@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace API.Models
+﻿namespace API.Models
 {
     public partial class User
     {
@@ -13,7 +10,6 @@ namespace API.Models
             Notifications = new HashSet<Notification>();
             Posts = new HashSet<Post>();
             Reports = new HashSet<Report>();
-            Posts = new HashSet<Post>();
         }
 
         public int Id { get; set; }

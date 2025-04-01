@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.Extensions.Hosting;
 
 namespace API.Models
 {

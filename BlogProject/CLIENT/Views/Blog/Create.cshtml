@@ -1,11 +1,90 @@
-﻿@model CLIENT.Models.BlogPostViewModel
+﻿
+<head>
+    
+    <title>Create Post</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #eef2f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-@{
-    ViewData["Title"] = "Tạo bài viết";
-}
+        .container {
+            max-width: 500px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
 
-<h2>Tạo bài viết</h2>
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            transition: background 0.3s;
+        }
 
-<form method="post">
-    @Html.Partial("_BlogForm")
-</form>
+            .btn-primary:hover {
+                background-color: #0056b3;
+            }
+
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    
+        <h3 class="text-center mb-4"><i class="fas fa-pen"></i> Create a New Post</h3>
+        <div id="alert" class="alert d-none"></div>
+        <form id="postForm">
+            <div class="mb-3">
+                <label for="title" class="form-label"><i class="fas fa-heading"></i> Title</label>
+                <input type="text" class="form-control" id="title" placeholder="Enter title" required>
+            </div>
+            <div class="mb-3">
+                <label for="content" class="form-label"><i class="fas fa-align-left"></i> Content</label>
+                <textarea class="form-control" id="content" rows="4" placeholder="Enter content" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-100"><i class="fas fa-paper-plane"></i> Submit</button>
+        </form>
+    
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var accessToken = sessionStorage.getItem('accessToken');
+            $('#postForm').submit(function (e) {
+                e.preventDefault();
+                let title = $('#title').val().trim();
+                let content = $('#content').val().trim();
+
+                if (!title || !content) {
+                    $('#alert').removeClass('d-none alert-success').addClass('alert-danger').text('Title and Content are required!');
+                    return;
+                }
+
+                $.ajax({
+                    url: 'https://localhost:57954/api/Posts',
+                    type: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + accessToken },
+                    contentType: 'application/json',
+                    data: JSON.stringify({ title, content }),
+                    success: function (response) {
+                        $('#alert').removeClass('d-none alert-danger').addClass('alert-success').html('<i class="fas fa-check-circle"></i> Post created successfully!');
+                        $('#postForm')[0].reset();
+                    },
+                    error: function (xhr) {
+                        let errorMsg = xhr.responseText || 'Something went wrong!';
+                        $('#alert').removeClass('d-none alert-success').addClass('alert-danger').html('<i class="fas fa-exclamation-circle"></i> ' + errorMsg);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,3 +1,6 @@
+﻿
+using API.Data;
+using API.DTO;
 ﻿using API.Infrastructure;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +13,7 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous]
+    [Authorize]
     public class PostsController : ControllerBase
     {
         private readonly Data.BlogManagementContext _context;
@@ -20,33 +23,37 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreatePost(string title, string content, int userId)
+        public async Task<IActionResult> CreatePost([FromBody] PostDto postDto)
         {
-            if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(content))
+            if (postDto == null)
+            {
+                return BadRequest("No data received.");
+            }
+            if (string.IsNullOrEmpty(postDto.Title) || string.IsNullOrEmpty(postDto.Content))
             {
                 return BadRequest("Title and Content are required.");
             }
-            var getUser = _context.Users.FirstOrDefault(u => u.Id == userId);
-            if (getUser == null)
+            var userName = User.Identity?.Name!;
+            if (string.IsNullOrEmpty(userName))
             {
                 return Unauthorized("User not authenticated.");
             }
-            var newPost = new Post
+            var userId = _context.Users.FirstOrDefault(u => u.Username == userName).Id;
+            
+            Post post = new Post
             {
-                Title = title,
-                Content = content,
-                AuthorId = getUser.Id,
-                CreatedAt = DateTime.UtcNow,
-                Status = "Published",
+                Title = postDto.Title,
+                Content = postDto.Content,
+                AuthorId = userId,
                 UpdatedAt = DateTime.UtcNow
             };
-            _context.Posts.Add(newPost);
+            _context.Posts.Add(post);
             _context.SaveChanges();
 
-            return Ok();
+            return Ok(post);
         }
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePost(int id, string title, string content)
+        public async Task<IActionResult> UpdatePost(int id, [FromBody] PostDto postDto)
         {
             var existingPost = await _context.Posts.FindAsync(id);
             if (existingPost == null)
@@ -54,13 +61,13 @@ namespace API.Controllers
                 return NotFound();
             }
 
-            existingPost.Title = title;
-            existingPost.Content = content;
+            existingPost.Title = postDto.Title;
+            existingPost.Content = postDto.Content;
             existingPost.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(existingPost);
         }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePost(int id)
@@ -86,33 +93,27 @@ namespace API.Controllers
 
             return Ok(posts);
         }
-        [HttpGet("search/title")]
-        public async Task<IActionResult> SearchPostsByTitle([FromQuery] string query)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetPostsById(int id)
         {
-            if (string.IsNullOrEmpty(query))
+            var post = await _context.Posts.FirstOrDefaultAsync(p => p.Id == id);
+
+            return Ok(post);
+        }
+        [HttpGet("search/{TitleOrContent}")]
+        public async Task<IActionResult> SearchPostsByTitle(string TitleOrContent)
+        {
+            if (string.IsNullOrEmpty(TitleOrContent))
             {
-                return BadRequest("Search query cannot be empty.");
+                return BadRequest("Search string cannot be empty.");
             }
 
             var posts = await _context.Posts
-                                       .Where(p => p.Title.Contains(query))
+                                       .Where(p => p.Title.Contains(TitleOrContent) || p.Content.Contains(TitleOrContent))
                                        .ToListAsync();
 
             return Ok(posts);
         }
-        [HttpGet("search/content")]
-        public async Task<IActionResult> SearchPostsByContent([FromQuery] string query)
-        {
-            if (string.IsNullOrEmpty(query))
-            {
-                return BadRequest("Search query cannot be empty.");
-            }
-
-            var posts = await _context.Posts
-                                       .Where(p => p.Content.Contains(query))
-                                       .ToListAsync();
-
-            return Ok(posts);
-        }
+        
     }
 }

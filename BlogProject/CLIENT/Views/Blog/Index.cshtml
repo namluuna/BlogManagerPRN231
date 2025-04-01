@@ -6,10 +6,11 @@
 
 <h2>Danh sách Blog</h2>
 
-<form method="get">
-    <input type="text" name="search" placeholder="Tìm kiếm theo tiêu đề" />
+<form id="searchForm">
+    <input type="text" id="searchInput" placeholder="Tìm kiếm theo tiêu đề hoặc nội dung" />
     <button type="submit">Tìm kiếm</button>
 </form>
+
 
 <a href="@Url.Action("Create")" class="btn btn-primary">Tạo bài viết mới</a>
 
@@ -72,8 +73,8 @@
                                 <td>${formatDate(p.updatedAt)}</td>
                                 <td>
                                     <a href="javascript:void(0);" onclick="redirectToComments(${p.id});" class="btn btn-warning">Xem chi tiết</a>
-                                    <a href="/Posts/Edit/${p.id}" class="btn btn-warning">Sửa</a>
-                                    <a href="/Posts/Delete/${p.id}" class="btn btn-danger">Xóa</a>
+                                    <a href="/Blog/Edit/${p.id}" class="btn btn-warning">Sửa</a>
+                                    <a href="javascript:void(0);" class="btn btn-danger" onclick="deletePost(${p.id})">Xóa</a>
                                 </td>
                             </tr>
                         `;
@@ -87,7 +88,11 @@
         }
 
         loadPosts(currentPage);
-
+        $("#searchForm").submit(function (e) {
+            e.preventDefault();
+            let searchKeyword = $("#searchInput").val().trim();
+            loadPosts(1, searchKeyword);
+        });
         $("#prevPage").click(function () {
             if (currentPage > 1) {
                 currentPage--;
@@ -102,5 +107,24 @@
     function redirectToComments(postId) {
         // Chuyển hướng đến trang /Comment/Index và truyền postId qua URL
         window.location.href = `/Comment/Index?postId=${postId}`;
+    }
+    //Delete
+        function deletePost(postId) {
+        if (!confirm("Bạn có chắc chắn muốn xóa bài viết này?")) return;
+
+        var accessToken = sessionStorage.getItem('accessToken');
+
+        $.ajax({
+            url: `https://localhost:57954/api/Posts/${postId}`, // API DELETE
+            type: "DELETE",
+            headers: { 'Authorization': 'Bearer ' + accessToken },
+            success: function () {
+                alert("Xóa bài viết thành công!");
+                location.reload();
+            },
+            error: function (xhr) {
+                alert("Lỗi: " + xhr.responseText);
+            }
+        });
     }
  </script>

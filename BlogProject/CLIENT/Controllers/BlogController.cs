@@ -28,55 +28,15 @@ namespace CLIENT.Controllers
         }
 
         public IActionResult Create() => View();
-
-        [HttpPost]
-        public async Task<IActionResult> Create(BlogPostViewModel model)
+        public IActionResult Edit(int id)
         {
-            var json = JsonConvert.SerializeObject(new { model.Title, model.Content });
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("", content);
-
-            if (response.IsSuccessStatusCode) return RedirectToAction("Index");
-            return View(model);
+            ViewBag.PostId = id;
+            return View();
         }
 
-        public async Task<IActionResult> Edit(int id)
+        public IActionResult Delete(int id)
         {
-            var response = await _httpClient.GetAsync($"/{id}");
-            if (!response.IsSuccessStatusCode) return NotFound();
-
-            var json = await response.Content.ReadAsStringAsync();
-            var post = JsonConvert.DeserializeObject<BlogPostViewModel>(json);
-            return View(post);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Edit(int id, BlogPostViewModel model)
-        {
-            var json = JsonConvert.SerializeObject(new { model.Title, model.Content });
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PutAsync($"/{id}", content);
-
-            if (response.IsSuccessStatusCode) return RedirectToAction("Index");
-            return View(model);
-        }
-
-        public async Task<IActionResult> Delete(int id)
-        {
-            var response = await _httpClient.GetAsync($"/{id}");
-            if (!response.IsSuccessStatusCode) return NotFound();
-
-            var json = await response.Content.ReadAsStringAsync();
-            var post = JsonConvert.DeserializeObject<BlogPostViewModel>(json);
-            return View(post);
-        }
-
-        [HttpPost, ActionName("Delete")]
-        public async Task<IActionResult> ConfirmDelete(int id)
-        {
-            var response = await _httpClient.DeleteAsync($"/{id}");
-            if (response.IsSuccessStatusCode) return RedirectToAction("Index");
-            return RedirectToAction("Delete", new { id });
+            ViewBag.PostId = id; return View();
         }
     }
 }
