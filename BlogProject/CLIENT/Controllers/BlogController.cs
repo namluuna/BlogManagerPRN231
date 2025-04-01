@@ -7,6 +7,7 @@ using CLIENT.Models; // Import model
 
 namespace CLIENT.Controllers
 {
+    
     public class BlogController : Controller
     {
         private readonly HttpClient _httpClient;

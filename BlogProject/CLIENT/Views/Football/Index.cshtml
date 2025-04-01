@@ -1,0 +1,93 @@
+﻿@{
+    ViewData["Title"] = "Football Dashboard";
+}
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">📢 Tỷ Số Trực Tiếp & Lịch Thi Đấu Hôm Nay ⚽</h2>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-danger text-white text-center">
+            <h4>🔴 Trận Đấu Đang Diễn Ra</h4>
+        </div>
+        <div class="card-body" id="liveMatchesContainer">
+            <p class="text-center text-muted">Đang tải dữ liệu...</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white text-center">
+            <h4>📅 Lịch Thi Đấu Hôm Nay</h4>
+        </div>
+        <div class="card-body" id="todayMatchesContainer">
+            <p class="text-center text-muted">Đang tải dữ liệu...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        const apiKey = 'a92aa7ae69bfafb95b589bd3584c073a';
+        const apiUrl = 'https://v3.football.api-sports.io';
+        const headers = { "x-apisports-key": apiKey };
+
+        function loadLiveMatches() {
+            $.ajax({
+                url: `${apiUrl}/fixtures?live=all`,
+                method: "GET",
+                headers: headers,
+                success: function (response) {
+                    let matches = response.response;
+                    let html = "";
+                    if (matches.length > 0) {
+                        html += `<table class='table table-striped table-hover'><thead class='table-dark'><tr><th>Giải Đấu</th><th>Đội Nhà</th><th>Tỷ Số</th><th>Đội Khách</th><th>Trạng Thái</th></tr></thead><tbody>`;
+                        matches.forEach(match => {
+                            html += `<tr><td>${match.league.name}</td><td><strong>${match.teams.home.name}</strong></td><td class='text-center'><span class='badge bg-success'>${match.goals.home ?? 0} - ${match.goals.away ?? 0}</span></td><td><strong>${match.teams.away.name}</strong></td><td><span class='badge bg-warning'>${match.fixture.status.long}</span></td></tr>`;
+                        });
+                        html += "</tbody></table>";
+                    } else {
+                        html = "<p class='text-center text-muted'>Không có trận đấu nào đang diễn ra.</p>";
+                    }
+                    $("#liveMatchesContainer").html(html);
+                },
+                error: function () {
+                    $("#liveMatchesContainer").html("<p class='text-center text-danger'>Lỗi khi tải dữ liệu.</p>");
+                }
+            });
+        }
+
+        function loadTodayMatches() {
+            let today = new Date().toISOString().split('T')[0];
+            $.ajax({
+                url: `${apiUrl}/fixtures?date=${today}`,
+                method: "GET",
+                headers: headers,
+                success: function (response) {
+                    let matches = response.response;
+                    let html = "";
+                    if (matches.length > 0) {
+                        html += `<table class='table table-bordered table-hover'><thead class='table-secondary'><tr><th>Giải Đấu</th><th>Đội Nhà</th><th>Đội Khách</th><th>Trạng Thái</th></tr></thead><tbody>`;
+                        matches.forEach(match => {
+                            html += `<tr><td>${match.league.name}</td><td><strong>${match.teams.home.name}</strong></td><td><strong>${match.teams.away.name}</strong></td><td><span class='badge bg-info'>${match.fixture.status.long}</span></td></tr>`;
+                        });
+                        html += "</tbody></table>";
+                    } else {
+                        html = "<p class='text-center text-muted'>Không có trận đấu nào hôm nay.</p>";
+                    }
+                    $("#todayMatchesContainer").html(html);
+                },
+                error: function () {
+                    $("#todayMatchesContainer").html("<p class='text-center text-danger'>Lỗi khi tải dữ liệu.</p>");
+                }
+            });
+        }
+            loadLiveMatches();
+            loadTodayMatches();
+
+            loadAd("banner", { width: 728, height: 90 });
+            loadAd("popup", { width: 800, height: 600 });
+            loadAd("sidebar", { width: 300, height: 600 });
+    });
+</script>

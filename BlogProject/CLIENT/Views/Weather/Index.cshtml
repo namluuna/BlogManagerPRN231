@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Dự báo thời tiết";
+}
+
+<div class="container mt-5">
+    <div class="card text-center shadow-lg p-4" style="max-width: 400px; margin: auto;">
+        <h2 class="text-primary">Dự báo thời tiết</h2>
+        <hr>
+        <div id="weather-result" class="d-none">
+            <h3 id="city-name" class="fw-bold"></h3>
+            <img id="weather-icon" class="my-3" src="" alt="Weather Icon" width="80">
+            <h4 class="text-danger">Nhiệt độ: <span id="temperature"></span>°C</h4>
+            <h5 class="text-info">Độ ẩm: <span id="humidity"></span>%</h5>
+            <h5 class="text-success">Gió: <span id="wind"></span> km/h</h5>
+        </div>
+        <div class="spinner-border text-primary d-none" id="loading" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function getWeather() {
+        let city = 'Hanoi';
+        document.getElementById("loading").classList.remove("d-none");
+        document.getElementById("weather-result").classList.add("d-none");
+
+        const apiKey = "afbe92148efb4244b0e213649250104";
+        const url = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}&aqi=no`;
+
+        try {
+            let response = await fetch(url);
+            let data = await response.json();
+
+            document.getElementById("city-name").textContent = `${data.location.name}, ${data.location.country}`;
+            document.getElementById("temperature").textContent = data.current.temp_c;
+            document.getElementById("humidity").textContent = data.current.humidity;
+            document.getElementById("wind").textContent = data.current.wind_kph;
+            document.getElementById("weather-icon").src = "https:" + data.current.condition.icon;
+
+            document.getElementById("weather-result").classList.remove("d-none");
+        } catch (error) {
+            alert("Không thể lấy dữ liệu thời tiết. Hãy thử lại!");
+            console.error(error);
+        } finally {
+            document.getElementById("loading").classList.add("d-none");
+        }
+    }
+        document.addEventListener("DOMContentLoaded", function() {
+            getWeather();
+            loadAd("banner", { width: 728, height: 90 });
+            loadAd("sidebar", { width: 300, height: 600 });
+            loadAd("popup", { width: 800, height: 600 });
+            loadAd("full-screen", { width: 500, height: 300 });
+        });
+</script>

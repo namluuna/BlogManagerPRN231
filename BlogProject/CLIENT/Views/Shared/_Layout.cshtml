@@ -1,23 +1,276 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/DEMO2.styles.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        /* Layout chung */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+            margin-top: 120px; /* Dự phòng chỗ cho navbar cố định */
+        }
+
+        #sidebar-ad-container {
+            position: fixed;
+            top: 10px; /* Cách từ trên xuống 10px */
+            right: 10px; /* Cách từ phải vào 10px */
+            width: 300px; /* Đặt chiều rộng cho quảng cáo */
+            z-index: 9999; /* Đảm bảo quảng cáo nằm trên các phần tử khác */
+            background-color: white; /* Đảm bảo quảng cáo có nền */
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm shadow cho quảng cáo */
+        }
+
+        .sidebar-ad {
+            position: relative;
+            display: inline-block;
+            width: 100%; /* Đảm bảo ảnh không vượt quá kích thước của container */
+        }
+
+            .sidebar-ad img {
+                max-width: 100%; /* Đảm bảo ảnh không vượt quá container */
+                height: auto; /* Duy trì tỷ lệ của ảnh */
+            }
+
+        /* Đảm bảo các item tin tức không bị mở rộng quá nhiều */
+        .news-item {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease-in-out;
+            max-width: 100%;
+            height: 400px;
+        }
+
+            .news-item:hover {
+                transform: scale(1.05);
+            }
+
+        .news-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .news-content {
+            padding: 15px;
+            height: calc(100% - 180px);
+        }
+
+        .news-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 10px;
+        }
+
+            .news-title a {
+                text-decoration: none;
+                color: #007bff;
+            }
+
+                .news-title a:hover {
+                    text-decoration: underline;
+                }
+
+        .news-desc {
+            font-size: 14px;
+            color: #555;
+            height: 50px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .news-time {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: #007bff;
+            padding: 15px 0;
+            color: white;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: fixed; /* Cố định navbar trên cùng */
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 9999; /* Đảm bảo navbar luôn trên cùng */
+        }
+
+            header .logo {
+                font-size: 28px;
+                font-weight: bold;
+                letter-spacing: 1px;
+                margin-bottom: 10px;
+            }
+
+        .navbar {
+            display: flex;
+            justify-content: center;
+            align-items: center; /* Căn giữa dọc */
+            gap: 20px;
+            padding: 10px 0; /* Thêm khoảng cách trên dưới cho navbar */
+        }
+
+            .navbar a {
+                color: white;
+                text-decoration: none;
+                padding: 12px 25px; /* Thêm padding để các liên kết rõ ràng hơn */
+                font-weight: bold;
+                border-radius: 5px;
+                transition: background-color 0.3s ease;
+            }
+
+                .navbar a:hover {
+                    background-color: #0056b3;
+                }
+
+        .search-bar {
+            margin-top: 15px;
+        }
+
+            .search-bar input {
+                padding: 8px;
+                border-radius: 5px;
+                border: none;
+                width: 250px;
+                margin-right: 10px;
+            }
+
+            .search-bar button {
+                padding: 8px 15px;
+                border-radius: 5px;
+                border: none;
+                background-color: #28a745;
+                color: white;
+            }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+    <!-- Header -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">Blog</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="/">Trang Chủ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/news">News</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/blog">Blog</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/weather">Weather</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/football">Football</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/randomjoke">Joke</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/quiz">Quiz</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div id="main-content">
+        <!-- Nội dung chính sẽ được chèn ở đây -->
+        @RenderBody()
     </div>
-    
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Quảng cáo Sidebar - sẽ tự động load từ JavaScript -->
+    <div id="sidebar-ad-container"></div>
+
+    <script>
+        async function loadAd(type, size) {
+            try {
+                let response = await fetch("https://localhost:57954/api/ads/load-ads");
+                let data = await response.json();
+
+                let adHtml = "";
+
+                switch (type) {
+                    case "sidebar":
+                        adHtml = `<div class="sidebar-ad">
+                                    <a href="${data.redirectUrl}" target="_blank">
+                                        <img src="${data.imageData}" alt="Sidebar Ad" style="width:${size.width}px; height:${size.height}px;" class="img-fluid rounded shadow">
+                                    </a>
+                                    </div>`;
+                        document.getElementById("sidebar-ad-container").innerHTML = adHtml;
+                        return;
+
+                    case "banner":
+                        adHtml = `<a href="${data.redirectUrl}" target="_blank">
+                                    <img src="${data.imageData}" alt="Banner Ad" class="img-fluid rounded shadow" style="width:${size.width}px; height:${size.height}px;">
+                                  </a>`;
+                        let bannerDiv = document.createElement('div');
+                        bannerDiv.innerHTML = adHtml;
+                        bannerDiv.style.display = 'flex';
+                        bannerDiv.style.justifyContent = 'center';
+                        bannerDiv.style.alignItems = 'center';
+                        bannerDiv.style.width = '100%';
+                        bannerDiv.style.margin = '0 auto';
+                        document.body.appendChild(bannerDiv);
+                        break;
+
+                    case "popup":
+                        adHtml = `<div id="popup-ad" style="position:fixed; top:50%; left:50%; transform: translate(-50%, -50%); width:${size.width}px; height:${size.height}px; background:#fff; padding:10px; box-shadow:0 2px 10px rgba(0,0,0,0.3); border-radius:10px; z-index: 9999;">
+                                    <a href="${data.redirectUrl}" target="_blank">
+                                        <img src="${data.imageData}" alt="Popup Ad" class="img-fluid rounded shadow" style="width:100%; height:auto;">
+                                    </a>
+                                    <button onclick="document.getElementById('popup-ad').remove()" style="position:absolute; top:5px; right:5px; border:none; background:#f00; color:#fff; border-radius:50%; width:25px; height:25px;">×</button>
+                                    </div>`;
+                        document.body.insertAdjacentHTML("beforeend", adHtml);
+                        return;
+
+                    default:
+                        console.error("Loại quảng cáo không hợp lệ!");
+                        return;
+                }
+            } catch (error) {
+                console.error("Lỗi tải quảng cáo:", error);
+            }
+        }
+    </script>
+
 </body>
 </html>

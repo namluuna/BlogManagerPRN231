@@ -126,5 +126,12 @@
                 alert("Lỗi: " + xhr.responseText);
             }
         });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            loadAd("banner", { width: 728, height: 90 });
+            loadAd("sidebar", { width: 300, height: 600 });
+            loadAd("popup", { width: 800, height: 600 });
+            loadAd("full-screen", { width: 500, height: 300 });
+        });
     }
  </script>

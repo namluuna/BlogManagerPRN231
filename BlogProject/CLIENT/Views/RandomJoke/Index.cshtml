@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤣 3 Truyện Cười Ngẫu Nhiên</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .joke-card {
+            margin-bottom: 20px;
+        }
+
+        .joke-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .joke-content {
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        .alert {
+            border-radius: 10px;
+        }
+
+        .container {
+            max-width: 800px;
+        }
+    </style>
+</head>
+<body class="container mt-5">
+
+    <h2 class="text-center mb-4 text-primary">🤣 3 Truyện Cười Ngẫu Nhiên</h2>
+
+    <div id="jokeContainer" class="mt-4"></div>
+
+    <script>
+        $(document).ready(function(){
+            function getRandomCategory() {
+                let categories = ["Any", "Programming", "Misc", "Dark", "Pun", "Spooky", "Christmas"];
+                return categories[Math.floor(Math.random() * categories.length)];
+            }
+
+            function loadJokes() {
+                let category = getRandomCategory();
+                $.ajax({
+                    url: `https://v2.jokeapi.dev/joke/${category}?amount=3`,
+                    method: "GET",
+                    success: function(response) {
+                        let jokes = response.jokes || [response]; // Nếu chỉ có 1 joke, API không trả về mảng
+                        let jokeHtml = jokes.map(joke => {
+                            return joke.type === "single"
+                                ? `<div class="alert alert-success joke-card">
+                                      <p class="joke-title">${joke.joke}</p>
+                                  </div>`
+                                : `<div class="alert alert-info joke-card">
+                                      <p class="joke-title">${joke.setup}</p>
+                                      <p class="joke-content">${joke.delivery}</p>
+                                  </div>`;
+                        }).join("");
+                        $("#jokeContainer").html(jokeHtml);
+                    },
+                    error: function() {
+                        $("#jokeContainer").html("<p class='text-danger'>Lỗi khi tải truyện cười!</p>");
+                    }
+                });
+            }
+            loadAd("banner", { width: 728, height: 90 });
+            loadAd("popup", { width: 800, height: 600 });
+            loadAd("sidebar", { width: 300, height: 600 });
+            loadJokes();
+        });
+    </script>
+
+</body>
+</html>

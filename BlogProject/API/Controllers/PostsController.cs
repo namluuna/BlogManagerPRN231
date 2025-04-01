@@ -38,7 +38,7 @@ namespace API.Controllers
             {
                 return Unauthorized("User not authenticated.");
             }
-            var userId = _context.Users.FirstOrDefault(u => u.Username == userName).Id;
+            var userId = _context.Users.FirstOrDefault(u => u.Email == userName).Id;
             
             Post post = new Post
             {
@@ -84,6 +84,7 @@ namespace API.Controllers
             return NoContent();
         }
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetPosts([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var posts = await _context.Posts

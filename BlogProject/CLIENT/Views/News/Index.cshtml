@@ -1,0 +1,213 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tin Tức Xã Hội</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        /* Danh sách lựa chọn */
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            list-style: none;
+            padding: 0;
+        }
+
+        .opt {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            margin: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+            .opt:hover, .opt.selected {
+                background-color: #0056b3;
+            }
+
+            .opt i {
+                margin-right: 5px;
+            }
+
+        /* Kết quả tìm kiếm */
+        #news-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .news-item {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease-in-out;
+            max-width: 100%;
+            height: 400px;
+        }
+
+            .news-item:hover {
+                transform: scale(1.05);
+            }
+
+        .news-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .news-content {
+            padding: 15px;
+            overflow: hidden;
+            height: calc(100% - 180px);
+        }
+
+        .news-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .news-desc {
+            font-size: 14px;
+            color: #555;
+            height: 50px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .news-time {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <input type="text" id="search-input" placeholder="Tìm kiếm tin tức..." style="padding: 10px; width: 300px; margin-right: 10px;">
+        <button onclick="searchNews()" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer;">Tìm kiếm</button>
+    </div>
+
+    <h1>Tin Tức Xã Hội Mới Nhất</h1>
+    <!-- Danh mục lựa chọn -->
+    <ul class="options">
+        <li class="opt selected" onclick="fetchNews('business')"><span><i></i></span><label>Business</label></li>
+        <li class="opt" onclick="fetchNews('crime')"><span><i></i></span><label>Crime</label></li>
+        <li class="opt" onclick="fetchNews('domestic')"><span><i></i></span><label>Domestic</label></li>
+        <li class="opt" onclick="fetchNews('education')"><span><i></i></span><label>Education</label></li>
+        <li class="opt" onclick="fetchNews('entertainment')"><span><i></i></span><label>Entertainment</label></li>
+        <li class="opt" onclick="fetchNews('environment')"><span><i></i></span><label>Environment</label></li>
+        <li class="opt" onclick="fetchNews('food')"><span><i></i></span><label>Food</label></li>
+        <li class="opt" onclick="fetchNews('health')"><span><i></i></span><label>Health</label></li>
+        <li class="opt" onclick="fetchNews('lifestyle')"><span><i></i></span><label>Lifestyle</label></li>
+        <li class="opt" onclick="fetchNews('other')"><span><i></i></span><label>Other</label></li>
+        <li class="opt" onclick="fetchNews('politics')"><span><i></i></span><label>Politics</label></li>
+        <li class="opt" onclick="fetchNews('science')"><span><i></i></span><label>Science</label></li>
+        <li class="opt" onclick="fetchNews('sports')"><span><i></i></span><label>Sports</label></li>
+        <li class="opt" onclick="fetchNews('technology')"><span><i></i></span><label>Technology</label></li>
+        <li class="opt" onclick="fetchNews('top')"><span><i></i></span><label>Top</label></li>
+        <li class="opt" onclick="fetchNews('tourism')"><span><i></i></span><label>Tourism</label></li>
+        <li class="opt" onclick="fetchNews('world')"><span><i></i></span><label>World</label></li>
+    </ul>
+
+    <!-- Kết quả tìm kiếm -->
+    <div id="news-container">Đang tải tin tức...</div>
+
+    <script>
+        let allNews = [];
+
+        async function fetchNews(category = '', searchKey = '') {
+            // Cập nhật lớp selected cho các danh mục
+            document.querySelectorAll('.opt').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            if (category) {
+                document.querySelector(`li[onclick="fetchNews('${category}')"]`).classList.add('selected');
+            }
+
+            const apiKey = "pub_7718340efca6d33d69f3a6bb09629d94a49a3"; // Thay bằng API Key của bạn
+            const country = "au,ru,gb,us,vi"; // Các quốc gia, nếu muốn có thể truyền vào tùy biến
+
+            // Xây dựng URL động tùy thuộc vào các tham số
+            let url = `https://newsdata.io/api/1/news?apikey=${apiKey}`;
+
+            if (searchKey) {
+                url += `&q=${searchKey}`;
+            }
+
+            if (category) {
+                url += `&category=${category}`;
+            }
+
+            url += `&country=${country}`;
+
+            try {
+                let response = await fetch(url);
+                let data = await response.json();
+                allNews = data.results || [];
+                displayNews(allNews);
+            } catch (error) {
+                document.getElementById("news-container").innerText = "Không thể tải tin tức.";
+                console.error("Lỗi tải tin tức:", error);
+            }
+        }
+
+        function displayNews(newsList) {
+            let newsContainer = document.getElementById("news-container");
+            newsContainer.innerHTML = ""; // Xóa nội dung cũ
+
+            if (!newsList || newsList.length === 0) {
+                newsContainer.innerText = "Không có tin tức.";
+                return;
+            }
+
+            newsList.forEach(news => {
+                let newsItem = document.createElement("div");
+                newsItem.className = "news-item";
+                newsItem.innerHTML = `
+                    <img class="news-img" src="${news.image_url || 'https://via.placeholder.com/300'}" alt="Hình ảnh tin tức">
+                    <div class="news-content">
+                        <h3 class="news-title"><a href="${news.link}" target="_blank">${news.title}</a></h3>
+                        <p class="news-desc">${news.description || "Không có mô tả."}</p>
+                        <p class="news-time">${new Date(news.pubDate).toLocaleString("vi-VN")}</p>
+                    </div>
+                `;
+                newsContainer.appendChild(newsItem);
+            });
+        }
+
+        function searchNews() {
+            const searchKey = document.getElementById("search-input").value.trim();
+            fetchNews('', searchKey);
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            fetchNews('business');
+
+            loadAd("banner", { width: 728, height: 90 });
+            //loadAd("sidebar", { width: 300, height: 600 });
+            loadAd("popup", { width: 800, height: 600 });
+            //loadAd("full-screen", { width: 500, height: 300 });
+        });
+    </script>
+</body>
+</html>

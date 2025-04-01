@@ -4,54 +4,27 @@
     <title>Create Post</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body {
-            background-color: #eef2f7;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .container {
-            max-width: 500px;
-            padding: 30px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-primary {
-            background-color: #007bff;
-            border: none;
-            transition: background 0.3s;
-        }
-
-            .btn-primary:hover {
-                background-color: #0056b3;
-            }
-
-        .form-control:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-        }
-    </style>
+    
 </head>
 <body>
-    
-        <h3 class="text-center mb-4"><i class="fas fa-pen"></i> Create a New Post</h3>
-        <div id="alert" class="alert d-none"></div>
-        <form id="postForm">
-            <div class="mb-3">
-                <label for="title" class="form-label"><i class="fas fa-heading"></i> Title</label>
-                <input type="text" class="form-control" id="title" placeholder="Enter title" required>
-            </div>
-            <div class="mb-3">
-                <label for="content" class="form-label"><i class="fas fa-align-left"></i> Content</label>
-                <textarea class="form-control" id="content" rows="4" placeholder="Enter content" required></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary w-100"><i class="fas fa-paper-plane"></i> Submit</button>
-        </form>
+
+    <div class="container main-content">
+        <div class="col-md-6">
+            <h3 class="text-center mb-4"><i class="fas fa-pen"></i> Create a New Post</h3>
+            <div id="alert" class="alert d-none"></div>
+            <form id="postForm">
+                <div class="mb-3">
+                    <label for="title" class="form-label"><i class="fas fa-heading"></i> Title</label>
+                    <input type="text" class="form-control" id="title" placeholder="Enter title" required="">
+                </div>
+                <div class="mb-3">
+                    <label for="content" class="form-label"><i class="fas fa-align-left"></i> Content</label>
+                    <textarea class="form-control" id="content" rows="4" placeholder="Enter content" required=""></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-paper-plane"></i> Submit</button>
+            </form>
+        </div>
+    </div>
     
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
